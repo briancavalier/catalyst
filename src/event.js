@@ -21,12 +21,9 @@ const makeEvent = (value, next) => ({ value, next });
 export const trim = (t, e) => isPast(t, e) ? trim(e.next()): e;
 
 // runEvent :: (a -> ...) -> Event t a -> Promise ()
-export const runEvent = (f, e) => e.map(({ value, next }) =>
-    Promise.resolve(f(value)).then(_ => runEvent(f, next())));
-
-export const runEvent2 = (f, e) => e.map(({ value, next }) => {
+export const runEvent = (f, e) => e.map(({ value, next }) => {
     f(value);
-    return runEvent2(f, next());
+    return runEvent(f, next());
 });
     //Promise.resolve(f(value)).then(_ => runEvent2(next())));
 
