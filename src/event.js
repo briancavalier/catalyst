@@ -25,7 +25,6 @@ export const runEvent = (f, e) => e.map(({ value, next }) => {
     f(value);
     return runEvent(f, next());
 });
-    //Promise.resolve(f(value)).then(_ => runEvent2(next())));
 
 // map :: (a -> b) -> Event t a -> Event t b
 export const map = (f, e) =>
