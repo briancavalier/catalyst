@@ -2,9 +2,7 @@ import TaskQueue from './TaskQueue';
 
 const taskQueue = new TaskQueue(runActions);
 
-// just :: a -> Future t a
-export const just = x => at(0, x);
-
+// at :: t -> a -> Future t a
 export const at = (t, x) => new Future(t, x);
 
 export const newFuture = () => at(Infinity, void 0);

@@ -11,10 +11,10 @@ export const trim = e =>
     t => e(t).apply(f => f.time < t ? f.value.next(t) : f);
 
 // runEvent :: (a -> ...) -> Event t a -> Clock t -> Future ()
-export const runEvent = (f, e, clock) =>
-    doRunEvent(f, e(clock()), clock, undefined);
+export const runEvent = (f, e, t) =>
+    doRunEvent(f, e(t), t, undefined);
 
-const doRunEvent = (f, e, clock) =>
+const doRunEvent = (f, e, clock, _) =>
     e.map(({ value, next }) => doRunEvent(f, next(clock), clock, f(value)));
 
 // map :: (a -> b) -> Event t a -> Event t b
