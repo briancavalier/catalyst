@@ -57,7 +57,7 @@ class Map {
 }
 
 export function apply(f, p) {
-    return p.time < Infinity ? f(p.value)
+    return p.time < Infinity ? f(p)
         : applyFuture(f, p, newFuture());
 }
 
