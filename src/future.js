@@ -1,7 +1,3 @@
-import TaskQueue from './TaskQueue';
-
-const taskQueue = new TaskQueue(runActions);
-
 // at :: t -> a -> Future t a
 export const at = (t, x) => new Future(t, x);
 
@@ -27,12 +23,32 @@ class Future {
         return race(this, p);
     }
 
-    setFuture(x) {
-        setFuture(Date.now(), x, this);
+    setFuture(t, x) {
+        setFuture(t, x, this);
     }
 }
 
-export const never = newFuture();
+class Never extends Future {
+    constructor() {
+        super(Infinity, void 0);
+    }
+
+    map(f) {
+        return this;
+    }
+
+    apply(f) {
+        return this;
+    }
+
+    concat(p) {
+        return this;
+    }
+
+    setFuture(t, x) {}
+}
+
+export const never = new Never();
 
 export function map(f, p) {
     return p.time < Infinity ? at(p.time, f(p.value))
@@ -133,5 +149,5 @@ function setFuture(t, x, f) {
         return;
     }
 
-    taskQueue.add(f);
+    runActions(f);
 }
