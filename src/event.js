@@ -1,5 +1,6 @@
 import { at, race, newFuture, never as neverF } from './future';
 
+// Conceptually:
 // type Event t a = Future t (a, Event t a)
 
 class Event {
@@ -10,8 +11,7 @@ class Event {
 
     runEvent(t) {
         return this._value === void 0
-            ? this._value = this._runEvent(t)
-            : this._value;
+            ? this._value = this._runEvent(t) : this._value;
     }
 }
 

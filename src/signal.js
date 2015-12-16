@@ -1,5 +1,9 @@
 import { map as mapE } from './event';
 
+// Conceptually:
+// type Signal t a = t -> (a, Signal t a)
+
+// A time-varying value
 class Signal {
     constructor(runSignal) {
         this._runSignal = runSignal;
@@ -8,15 +12,11 @@ class Signal {
 
     runSignal(t) {
         return this._value === void 0
-            ? this._value = this._runSignal(t)
-            : this._value;
+            ? this._value = this._runSignal(t) : this._value;
     }
 
     map(f) {
-        return new Signal(t => {
-            const { value, next } = this.runSignal(t);
-            return makePair(f(value), next.map(f));
-        });
+        return new Signal(t => mapSignal(f, this.runSignal(t)));
     }
 
     ap(xs) {
@@ -24,14 +24,19 @@ class Signal {
     }
 
     liftA2(f, b) {
-        return new Signal(t => {
-            const { value: v1, next: n1 } = this.runSignal(t);
-            const { value: v2, next: n2 } = b.runSignal(t);
-            return makePair(f(v1, v2), n1.liftA2(f, n2))
-        });
+        return new Signal(t => liftA2Signal(f, this.runSignal(t), b.runSignal(t)));
     }
 }
 
+// Internal signal helpers
+const mapSignal = (f, { value, next }) => makePair(f(value), next.map(f));
+
+const liftA2Signal = (f, { value: v1, next: n1 }, { value: v2, next: n2 }) =>
+    makePair(f(v1, v2), liftA2(f, n1, n2));
+
+const apply = (f, x) => f(x);
+
+// A Signal whose value doesn't vary
 class ConstSignal {
     constructor(x) {
         this.value = x;
@@ -55,10 +60,10 @@ class ConstSignal {
     }
 }
 
-const apply = (f, x) => f(x);
-
+// constant :: a -> Signal t a
 export const constant = x => new ConstSignal(x);
 
+// map :: (a -> b) -> Signal t a -> Signal t b
 export const map = (f, s) => s.map(f);
 
 // liftA2 :: (a -> b -> c) -> Signal t a -> Signal t b -> Signal t c
@@ -83,5 +88,5 @@ const switchTo = ({ value, next }, t) => switchToS(value.runSignal(t), next);
 
 const switchToS = ({ value, next }, e) => makePair(value, switcher(next, e));
 
-
+// Simple pair helper
 const makePair = (value, next) => ({ value, next });
