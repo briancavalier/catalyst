@@ -15,13 +15,23 @@ class Event {
     }
 }
 
+class FutureEvent {
+    constructor(future) {
+        this._value = future;
+    }
+
+    runEvent(t) {
+        return this._value;
+    }
+}
+
 // never :: Event t a
-export const never = new Event(t => neverF);
+export const never = new FutureEvent(neverF);
 
 // trim :: t -> Event t a -> Event t a
 // drop past events
-export const trim = e => t => trimNext(e.runEvent(t), t);
-const trimNext = (f, t) => f.time < t ? trim(f.value.next)(t) : f;
+export const trim = e => new Event(t => trimNext(e.runEvent(t), t));
+const trimNext = (f, t) => f.time < t ? trim(f.value.next).runEvent(t) : f;
 
 // runEvent :: (a -> ...) -> Event t a -> Clock t -> Future ()
 export const runEvent = (f, e, t) =>
@@ -32,7 +42,8 @@ const doRunEvent = (f, ev, _) =>
 
 // map :: (a -> b) -> Event t a -> Event t b
 export const map = (f, e) =>
-    new Event(t => e.runEvent(t).map(({ value, next }) => makePair(f(value), map(f, next))));
+    new Event(t => e.runEvent(t).map(({ value, next }) =>
+        makePair(f(value), map(f, next))));
 
 // filter :: (a -> boolean) -> Event t a -> Event t a
 export const filter = (f, e) =>
@@ -46,6 +57,12 @@ const filterNext = (f, ev, t) =>
 const filterKeep = (f, t, { value, next }) =>
     at(t, makePair(value, filter(f, next)));
 
+// rest :: Event t a -> Event t a
+// drop the first occurrence
+export const rest = e =>
+    new Event(t => e.runEvent(t).apply(({ time, value: { next } }) =>
+        next.runEvent(time)));
+
 // merge :: Event t a -> Event t a -> Event t a
 export const merge = (e1, e2) =>
     new Event(t => mergeE(e1.runEvent(t), e2.runEvent(t), t));
@@ -56,21 +73,36 @@ const mergeE = (e1, e2, t) =>
 const mapwl = (a, b) => a.map(x => ({winner:x, loser:b}));
 
 const mergeNext = (a, b, t) => race(a, b).map(({ winner, loser }) =>
-    makePair(winner.value, merge(new Event(t => loser), winner.next)));
+    makePair(winner.value, merge(new FutureEvent(loser), winner.next)));
+
+// scan :: (a -> b -> a) -> a -> Event t b -> Event t a
+export const scan = (f, a, e) =>
+    new Event(t => at(t, makePair(a, accum(f, a, e))));
+
+// accumulate :: (a -> b -> a) -> a -> Event t b -> Event t a
+export const accum = (f, a, e) =>
+    new Event(t => e.runEvent(t).map(({ value, next }) =>
+        accumNext(f, f(a, value), next)));
+
+const accumNext = (f, b, next) => makePair(b, accum(f, b, next));
+
+// sampleWith :: (a -> b -> c) -> Signal t a -> Event t b -> Event t c
+export const sampleWith = (f, s, e) =>
+    new Event(t => e.runEvent(t).apply(({ time, value }) => sampleWithNext(f, time, s.runSignal(time), value)));
+
+const sampleWithNext = (f, t, s, e) =>
+    at(t, makePair(f(s.value, e.value), sampleWith(f, s.next, e.next)));
 
 // sample :: Signal t a -> Event t b -> Event t a
-export const sample = (s, e) =>
-    new Event(t => e.runEvent(t).apply(({ time, value }) => sampleNext(time, s.runSignal(time), value)));
-
-const sampleNext = (t, s, { next }) =>
-    at(t, makePair(s.value, sample(s.next, next)));
+export const sample = (s, e) => sampleWith(first, s, e);
+const first = (a, b) => a;
 
 // type Occur a :: a -> Occur a
 // newInput :: () -> { occur :: Occur a, event :: Event t a }
 export const newInput = clock => () => nextEvent(clock, newFuture());
 
 const nextEvent = (clock, future) =>
-    ({ occur: newOccur(clock, future), event: new Event(t => future) });
+    ({ occur: newOccur(clock, future), event: new FutureEvent(future) });
 
 const newOccur = (clock, future) => value => {
     const { occur, event } = nextEvent(clock, newFuture());

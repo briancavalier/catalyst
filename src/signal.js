@@ -48,7 +48,7 @@ class ConstSignal {
     }
 
     map(f) {
-        return new Signal(t => makePair(f(this.value), this.map(f)));
+        return new Signal(t => mapSignal(f, this));
     }
 
     ap(xs) {
