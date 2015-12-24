@@ -1,18 +1,15 @@
+import { newSource } from './source';
 import { constant, map } from './signal';
 
-const adapt = occur => e => occur = occur(e);
-
-export const adapter = newInput => {
-    let { occur, event } = newInput();
-    return { occur: adapt(occur), event };
-};
-
-export const fromValue = input => map(getValue, constant(input));
-
-export const fromDomEvent = (input, ev, node, capture = false) => {
-    let { occur, event } = adapter(input);
-    node.addEventListener(ev, occur, capture);
-    return event;
-};
+export const fromInput = input => map(getValue, constant(input));
 
 const getValue = input => input.value;
+
+export const fromDomEvent = (ev, node, capture = false) =>
+    newSource(occur => addListener(ev, node, capture, occur));
+
+const addListener = (ev, node, capture, occur) => {
+    node.addEventListener(ev, occur, capture);
+    return () => node.removeEventListener(ev, occur, capture);
+};
+

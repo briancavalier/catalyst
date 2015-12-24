@@ -1,5 +1,7 @@
-import { fromDomEvent, fromValue } from '../../src/dom';
-import { runEvent, newInput, map, merge, scan, rest, sample } from '../../src/event';
+import 'babel-polyfill'; // needed for generators
+import { build, runSource } from '../../src/source';
+import { fromDomEvent, fromInput } from '../../src/dom';
+import { map, merge, scan, rest, sample } from '../../src/event';
 import { step, liftA2, map as mapSignal } from '../../src/signal';
 import snabbdom from 'snabbdom';
 import h from 'snabbdom/h';
@@ -8,6 +10,8 @@ const patch = snabbdom.init([]);
 
 const byId = id => document.getElementById(id);
 const seq = (f, g) => x => g(f(x));
+const apply = (x, f) => f(x);
+
 const mapto = (x, e) => map(() => x, e);
 
 const render = ({ counters, current }) =>
@@ -27,8 +31,6 @@ const renderCounters = (current, counters) =>
 const data = localStorage.getItem('counters');
 const initialState = data ? JSON.parse(data) : { counters: [0, 0], current: 0 };
 let vnode = patch(byId('container'), render(initialState));
-
-const apply = (x, f) => f(x);
 
 // Actions are represented as functions that update
 // the appliction state.
@@ -52,17 +54,6 @@ const update = (newVal, at, a) => {
     return b;
 };
 
-const input = newInput(Date.now);
-
-const addCounter = mapto(add, fromDomEvent(input, 'click', byId('add-counter')));
-const removeCounter = mapto(remove, fromDomEvent(input, 'click', byId('remove-counter')));
-const nextCounter = mapto(switchCounter(-1), fromDomEvent(input, 'click', byId('left')));
-const prevCounter = mapto(switchCounter(1), fromDomEvent(input, 'click', byId('right')));
-const incCounter = mapto(addCurrent(1), fromDomEvent(input, 'click', byId('inc')));
-const decCounter = mapto(addCurrent(-1), fromDomEvent(input, 'click', byId('dec')));
-
-const actions = [addCounter, removeCounter, nextCounter, prevCounter, incCounter, decCounter].reduce(merge);
-
 const updateStore = newState => {
     localStorage.setItem('counters', JSON.stringify(newState));
     return newState;
@@ -70,7 +61,18 @@ const updateStore = newState => {
 
 const updateView = p => vnode = patch(vnode, p);
 
-const newState = rest(scan(apply, initialState, actions));
-const updates = map(updateStore, newState);
+const counters = build(function*() {
+    const addCounter = mapto(add, yield fromDomEvent('click', byId('add-counter')));
+    const removeCounter = mapto(remove, yield fromDomEvent('click', byId('remove-counter')));
+    const nextCounter = mapto(switchCounter(-1), yield fromDomEvent('click', byId('left')));
+    const prevCounter = mapto(switchCounter(1), yield fromDomEvent('click', byId('right')));
+    const incCounter = mapto(addCurrent(1), yield fromDomEvent('click', byId('inc')));
+    const decCounter = mapto(addCurrent(-1), yield fromDomEvent('click', byId('dec')));
 
-runEvent(seq(render, updateView), updates, Date.now());
+    const actions = [addCounter, removeCounter, nextCounter, prevCounter, incCounter, decCounter].reduce(merge);
+
+    const newState = rest(scan(apply, initialState, actions));
+    return map(updateStore, newState);
+});
+
+runSource(seq(render, updateView), counters, Date.now);
