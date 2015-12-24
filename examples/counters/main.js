@@ -6,32 +6,40 @@ import { step, liftA2, map as mapSignal } from '../../src/signal';
 import snabbdom from 'snabbdom';
 import h from 'snabbdom/h';
 
-const patch = snabbdom.init([]);
-
+// -------------------------------------------------------
+// Helpers
 const byId = id => document.getElementById(id);
+const clicks = id => fromDomEvent('click', byId(id));
+
 const seq = (f, g) => x => g(f(x));
 const apply = (x, f) => f(x);
 
 const mapto = (x, e) => map(() => x, e);
 
+// -------------------------------------------------------
+// Rendering
+const patch = snabbdom.init([]);
+
 const render = ({ counters, current }) =>
     h('div#container', [
-        h('button#inc', '+'),
-        h('button#dec', '-'),
-        h('p', renderCounters(current, counters)),
-        h('button#left', '<<'),
-        h('button#right', '>>'),
         h('button#add-counter', 'Add counter'),
         h('button#remove-counter', 'Remove counter'),
+        h('p', renderCounters(current, counters)),
+        h('button#left', '<<'),
+        h('button#inc', '+'),
+        h('button#dec', '-'),
+        h('button#right', '>>')
     ]);
 
 const renderCounters = (current, counters) =>
     counters.map((val, i) => h('span.counter' + (i === current ? '.current' : ''), `${val}`));
 
+// -------------------------------------------------------
+// App state
 const data = localStorage.getItem('counters');
 const initialState = data ? JSON.parse(data) : { counters: [0, 0], current: 0 };
-let vnode = patch(byId('container'), render(initialState));
 
+// -------------------------------------------------------
 // Actions are represented as functions that update
 // the appliction state.
 // type Action :: s -> s
@@ -59,20 +67,26 @@ const updateStore = newState => {
     return newState;
 };
 
-const updateView = p => vnode = patch(vnode, p);
+// -------------------------------------------------------
+// Render initial state
+let vnode = patch(byId('container'), render(initialState));
+const updateView = newVTree => vnode = patch(vnode, newVTree);
 
+// -------------------------------------------------------
+// Build event network
 const counters = build(function*() {
-    const addCounter = mapto(add, yield fromDomEvent('click', byId('add-counter')));
-    const removeCounter = mapto(remove, yield fromDomEvent('click', byId('remove-counter')));
-    const nextCounter = mapto(switchCounter(-1), yield fromDomEvent('click', byId('left')));
-    const prevCounter = mapto(switchCounter(1), yield fromDomEvent('click', byId('right')));
-    const incCounter = mapto(addCurrent(1), yield fromDomEvent('click', byId('inc')));
-    const decCounter = mapto(addCurrent(-1), yield fromDomEvent('click', byId('dec')));
+    const addCounter    = mapto(add, yield clicks('add-counter'));
+    const removeCounter = mapto(remove, yield clicks('remove-counter'));
+    const nextCounter   = mapto(switchCounter(-1), yield clicks('left'));
+    const prevCounter   = mapto(switchCounter(1), yield clicks('right'));
+    const incCounter    = mapto(addCurrent(1), yield clicks('inc'));
+    const decCounter    = mapto(addCurrent(-1), yield clicks('dec'));
 
     const actions = [addCounter, removeCounter, nextCounter, prevCounter, incCounter, decCounter].reduce(merge);
 
-    const newState = rest(scan(apply, initialState, actions));
-    return map(updateStore, newState);
+    return rest(scan(apply, initialState, actions));
 });
 
-runSource(seq(render, updateView), counters, Date.now);
+// -------------------------------------------------------
+// Run event network
+runSource(seq(updateStore, render, updateView), counters, Date.now);

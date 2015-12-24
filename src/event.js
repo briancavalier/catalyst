@@ -98,8 +98,8 @@ export const sample = (s, e) => sampleWith(first, s, e);
 const first = (a, b) => a;
 
 // type Occur a :: a -> Occur a
-// newInput :: () -> { occur :: Occur a, event :: Event t a }
-export const newInput = clock => () => nextEvent(clock, newFuture());
+// newInput :: Clock t -> { occur :: Occur a, event :: Event t a }
+export const newInput = clock => nextEvent(clock, newFuture());
 
 const nextEvent = (clock, future) =>
     ({ occur: newOccur(clock, future), event: new FutureEvent(future) });
@@ -110,5 +110,5 @@ const newOccur = (clock, future) => value => {
     return occur;
 };
 
-// makeEvent :: a -> (() -> Event t a) -> Event t a
+// makeEvent :: a -> Event t a -> (a, Event t a)
 const makePair = (value, next) => ({ value, next });

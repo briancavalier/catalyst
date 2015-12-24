@@ -1,3 +1,4 @@
+// TODO: This should move to another repo like @catalyst/dom
 import { newSource } from './source';
 import { constant, map } from './signal';
 
@@ -12,4 +13,3 @@ const addListener = (ev, node, capture, occur) => {
     node.addEventListener(ev, occur, capture);
     return () => node.removeEventListener(ev, occur, capture);
 };
-

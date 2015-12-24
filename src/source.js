@@ -3,20 +3,16 @@ import stepDo from './stepDo';
 
 class Source {
     constructor(runSource) {
-        this._runSource = runSource;
-    }
-
-    runSource(clock) {
-        return this._runSource(newInput(clock));
+        this.runSource = runSource;
     }
 
     chain(f) {
-        return new Source(input => chain(f, input, this._runSource(input)));
+        return new Source(clock => chain(f, clock, this.runSource(clock)));
     }
 }
 
 export function build(generator, ...args) {
-    return stepDo(just, void 0, generator.apply(this, args));
+    return stepDo(just, generator.apply(this, args), void 0);
 }
 
 export const newSource = f => new Source(newPushAdapter(f));
@@ -29,14 +25,14 @@ export const runSource = (f, source, clock) => {
     return dispose;
 };
 
-const newPushAdapter = f => newInput => {
-    const { occur, event } = newInput();
+const newPushAdapter = f => clock => {
+    const { occur, event } = newInput(clock);
     const dispose = f(adapt(occur));
     return { dispose, event };
 };
 
-const chain = (f, input, r1) =>
-    combineChain(r1, f(r1.event)._runSource(input));
+const chain = (f, clock, r1) =>
+    combineChain(r1, f(r1.event).runSource(clock));
 
 const combineChain = (r1, r2) => ({
         dispose: disposeBoth(r2, r1),
