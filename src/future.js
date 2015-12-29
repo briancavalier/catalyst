@@ -19,10 +19,6 @@ class Future {
         return apply(f, this);
     }
 
-    concat(p) {
-        return race(this, p);
-    }
-
     setFuture(t, x) {
         setFuture(t, x, this);
     }
@@ -38,10 +34,6 @@ class Never extends Future {
     }
 
     apply(f) {
-        return this;
-    }
-
-    concat(p) {
         return this;
     }
 
@@ -96,9 +88,9 @@ class Apply {
 
 export const race = (a, b) => runRace(a.time, a, b.time, b);
 
-const runRace = (at, a, bt, b) =>
-    at === Infinity && bt === Infinity ? raceFuture(a, b, newFuture())
-        : at <= bt ? a : b; // Prefer a when simultaneous
+const runRace = (ta, a, tb, b) =>
+    ta === Infinity && tb === Infinity ? raceFuture(a, b, newFuture())
+        : ta <= tb ? a : b; // Prefer a when simultaneous
 
 function raceFuture(a, b, f) {
     const s = new SetValue(f);

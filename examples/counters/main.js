@@ -1,5 +1,5 @@
 import 'babel-polyfill'; // needed for generators
-import { build, runSource } from '../../src/source';
+import { build, runEvent } from '../../src/source';
 import { fromDomEvent, fromInput } from '../../src/dom';
 import { map, merge, scan, rest, sample } from '../../src/event';
 import { step, liftA2, map as mapSignal } from '../../src/signal';
@@ -89,4 +89,4 @@ const counters = build(function*() {
 
 // -------------------------------------------------------
 // Run event network
-runSource(seq(updateStore, render, updateView), counters, Date.now);
+runEvent(seq(updateStore, render, updateView), counters, Date.now);

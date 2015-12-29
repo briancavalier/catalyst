@@ -1,4 +1,4 @@
-import { newInput, merge, runEvent } from './event';
+import { newInput, runEvent as stepEvent } from './event';
 import stepDo from './stepDo';
 
 class Source {
@@ -19,9 +19,9 @@ export const newSource = f => new Source(newPushAdapter(f));
 
 export const just = event => new Source(_ => ({ dispose: noop, event }));
 
-export const runSource = (f, source, clock) => {
+export const runEvent = (f, source, clock) => {
     const { dispose, event } = source.runSource(clock);
-    runEvent(f, event, clock());
+    stepEvent(f, event, clock());
     return dispose;
 };
 

@@ -1,5 +1,5 @@
 import 'babel-polyfill'; // needed for generators
-import { build, runSource } from '../../src/source';
+import { build, runEvent } from '../../src/source';
 import { fromDomEvent } from '../../src/dom';
 import { map, sample, merge } from '../../src/event';
 import { liftA2, step } from '../../src/signal';
@@ -18,4 +18,4 @@ const n = build(function* () {
     return sample(s, merge(mouse, keydown));
 });
 
-runSource(e => document.body.innerHTML = e, n, Date.now);
+runEvent(e => document.body.innerHTML = e, n, Date.now);

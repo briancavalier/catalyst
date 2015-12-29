@@ -1,5 +1,5 @@
 import 'babel-polyfill'; // needed for generators
-import { build, runSource } from '../../src/source';
+import { build, runEvent } from '../../src/source';
 import { fromDomEvent, fromInput } from '../../src/dom';
 import { liftA2, map } from '../../src/signal';
 import { sample } from '../../src/event';
@@ -21,4 +21,4 @@ const addInputs = build(function*(elx, ely, container) {
 const elz = byId('z');
 const render = result => elz.value = result;
 
-runSource(render, addInputs, Date.now);
+runEvent(render, addInputs, Date.now);

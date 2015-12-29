@@ -28,17 +28,15 @@ class FutureEvent {
 // never :: Event t a
 export const never = new FutureEvent(neverF);
 
+// runEvent :: (a -> ()) -> Event t a -> t -> Future t ()
+export const runEvent = (f, e, t) =>
+    e.runEvent(t).apply(({ time, value }) =>
+        runEvent(f, value.next, time, f(value.value)));
+
 // trim :: t -> Event t a -> Event t a
 // drop past events
 export const trim = e => new Event(t => trimNext(e.runEvent(t), t));
 const trimNext = (f, t) => f.time < t ? trim(f.value.next).runEvent(t) : f;
-
-// runEvent :: (a -> ...) -> Event t a -> Clock t -> Future ()
-export const runEvent = (f, e, t) =>
-    doRunEvent(f, e.runEvent(t), undefined);
-
-const doRunEvent = (f, ev, _) =>
-    ev.map(({ value, next }) => doRunEvent(f, next.runEvent(ev.time), f(value)));
 
 // map :: (a -> b) -> Event t a -> Event t b
 export const map = (f, e) =>
@@ -60,8 +58,8 @@ const filterKeep = (f, t, { value, next }) =>
 // rest :: Event t a -> Event t a
 // drop the first occurrence
 export const rest = e =>
-    new Event(t => e.runEvent(t).apply(({ time, value: { next } }) =>
-        next.runEvent(time)));
+    new Event(t => e.runEvent(t).apply(({ time, value }) =>
+        value.next.runEvent(time)));
 
 // merge :: Event t a -> Event t a -> Event t a
 export const merge = (e1, e2) =>
