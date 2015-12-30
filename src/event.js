@@ -75,14 +75,16 @@ const mergeNext = (a, b, t) => race(a, b).map(({ winner, loser }) =>
 
 // scan :: (a -> b -> a) -> a -> Event t b -> Event t a
 export const scan = (f, a, e) =>
-    new Event(t => at(t, makePair(a, accum(f, a, e))));
+    new Event(t => at(t, makePair(a, runAccum(f, a, e))));
 
-// accumulate :: (a -> b -> a) -> a -> Event t b -> Event t a
-export const accum = (f, a, e) =>
+// accum :: a -> Event t (a -> a) -> Event t a
+export const accum = (a, e) => scan((a, f) => f(a), a, e);
+
+const runAccum = (f, a, e) =>
     new Event(t => e.runEvent(t).map(({ value, next }) =>
         accumNext(f, f(a, value), next)));
 
-const accumNext = (f, b, next) => makePair(b, accum(f, b, next));
+const accumNext = (f, b, next) => makePair(b, runAccum(f, b, next));
 
 // sampleWith :: (a -> b -> c) -> Signal t a -> Event t b -> Event t c
 export const sampleWith = (f, s, e) =>

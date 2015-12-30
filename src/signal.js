@@ -1,4 +1,4 @@
-import { map as mapE, accum as accumE } from './event';
+import { map as mapE, accum as accumE, rest } from './event';
 
 // Conceptually:
 // type Signal t a = t -> (a, Signal t a)
@@ -69,8 +69,8 @@ export const map = (f, s) => s.map(f);
 // liftA2 :: (a -> b -> c) -> Signal t a -> Signal t b -> Signal t c
 export const liftA2 = (f, s1, s2) => s1.liftA2(f, s2);
 
-// accum :: (a -> b -> a) -> a -> Event t b -> Signal t a
-export const accum = (f, a, e) => step(a, accumE(f, a, e));
+// accum :: a -> Event t (a -> a) -> Signal t a
+export const accum = (a, e) => step(a, rest(accumE(a, e)));
 
 // step :: a -> Event t a -> Signal t a
 export const step = (x, e) => switcher(constant(x), mapE(constant, e));

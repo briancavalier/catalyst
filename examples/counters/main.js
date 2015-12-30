@@ -1,18 +1,16 @@
 import 'babel-polyfill'; // needed for generators
 import { build, runEvent } from '../../src/source';
-import { fromDomEvent, fromInput } from '../../src/dom';
-import { map, merge, scan, rest, sample } from '../../src/event';
-import { step, liftA2, map as mapSignal } from '../../src/signal';
+import { fromDomEvent } from '../../src/dom';
+import { map, merge, accum } from '../../src/event';
 import snabbdom from 'snabbdom';
 import h from 'snabbdom/h';
 
 // -------------------------------------------------------
 // Helpers
 const byId = id => document.getElementById(id);
-const clicks = id => fromDomEvent('click', byId(id));
+const click = id => fromDomEvent('click', byId(id));
 
 const seq = (f, g) => x => g(f(x));
-const apply = (x, f) => f(x);
 
 const mapto = (x, e) => map(() => x, e);
 
@@ -42,7 +40,7 @@ const initialState = data ? JSON.parse(data) : { counters: [0, 0], current: 0 };
 // -------------------------------------------------------
 // Actions are represented as functions that update
 // the appliction state.
-// type Action :: s -> s
+// type Action s :: s -> s
 const switchCounter = x => ({ counters, current }) =>
     ({ counters, current: inbounds(counters.length, current + x) });
 const inbounds = (bound, n) => n < 0 ? bound+n : n%bound;
@@ -75,16 +73,16 @@ const updateView = newVTree => vnode = patch(vnode, newVTree);
 // -------------------------------------------------------
 // Build event network
 const counters = build(function*() {
-    const addCounter    = mapto(add, yield clicks('add-counter'));
-    const removeCounter = mapto(remove, yield clicks('remove-counter'));
-    const nextCounter   = mapto(switchCounter(-1), yield clicks('left'));
-    const prevCounter   = mapto(switchCounter(1), yield clicks('right'));
-    const incCounter    = mapto(addCurrent(1), yield clicks('inc'));
-    const decCounter    = mapto(addCurrent(-1), yield clicks('dec'));
+    const addCounter    = mapto(add, yield click('add-counter'));
+    const removeCounter = mapto(remove, yield click('remove-counter'));
+    const nextCounter   = mapto(switchCounter(-1), yield click('left'));
+    const prevCounter   = mapto(switchCounter(1), yield click('right'));
+    const incCounter    = mapto(addCurrent(1), yield click('inc'));
+    const decCounter    = mapto(addCurrent(-1), yield click('dec'));
 
     const actions = [addCounter, removeCounter, nextCounter, prevCounter, incCounter, decCounter].reduce(merge);
 
-    return rest(scan(apply, initialState, actions));
+    return accum(initialState, actions);
 });
 
 // -------------------------------------------------------
