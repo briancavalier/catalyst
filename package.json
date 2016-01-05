@@ -5,6 +5,7 @@
   "main": "dist/catalyst.js",
   "scripts": {
     "build:add-inputs": "rollup -c rollup.js -o examples/add-inputs/app.js examples/add-inputs/main.js",
+    "build:bounce": "rollup -c rollup.js -o examples/bounce/app.js examples/bounce/main.js",
     "build:counters": "rollup -c rollup.js -o examples/counters/app.js examples/counters/main.js",
     "build:mouse-position": "rollup -c rollup.js -o examples/mouse-position/app.js examples/mouse-position/main.js"
   },

@@ -60,6 +60,9 @@ class ConstSignal {
     }
 }
 
+// newSignal :: (t -> a) -> Signal t a
+export const newSignal = f => new Signal(f);
+
 // constant :: a -> Signal t a
 export const constant = x => new ConstSignal(x);
 
@@ -90,5 +93,18 @@ const switchTo = ({ value, next }, t) => switchToS(value.runSignal(t), next);
 
 const switchToS = ({ value, next }, e) => makePair(value, switcher(next, e));
 
+// integrate :: (a -> a -> a) -> (dt -> a -> a) -> a -> Signal t a -> Signal t a
+// TODO: This should move somewhere else
+export const integrate = (integral, a, s) => runInteg(integral, a, s, 0);
+
+const runInteg = (integral, a, s, t0) =>
+    new Signal(t => stepInteg(integral, a, s.runSignal(t), t, t0));
+
+const stepInteg = (integral, a, sv, t, t0) => {
+    const b = integral(a, sv.value, t - t0);
+    return makePair(b, runInteg(integral, b, sv.next, t));
+};
+
 // Simple pair helper
 const makePair = (value, next) => ({ value, next });
+

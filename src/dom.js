@@ -1,6 +1,7 @@
 // TODO: This should move to another repo like @catalyst/dom
 import { newSource } from './source';
 import { constant, map } from './signal';
+import schedule from './schedule';
 
 export const fromInput = input => map(getValue, constant(input));
 
@@ -13,3 +14,6 @@ const addListener = (ev, node, capture, occur) => {
     node.addEventListener(ev, occur, capture);
     return () => node.removeEventListener(ev, occur, capture);
 };
+
+export const animationFrames = () =>
+    schedule(cancelAnimationFrame, requestAnimationFrame);
