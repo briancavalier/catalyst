@@ -41,7 +41,7 @@ const trimNext = (f, t) => f.time < t ? trim(f.value.next).runEvent(t) : f;
 // map :: (a -> b) -> Event t a -> Event t b
 export const map = (f, e) =>
     new Event(t => e.runEvent(t).map(({ value, next }) =>
-        makePair(f(value), map(f, next))));
+        eventStep(f(value), map(f, next))));
 
 // filter :: (a -> boolean) -> Event t a -> Event t a
 export const filter = (f, e) =>
@@ -53,7 +53,7 @@ const filterNext = (f, ev, t) =>
         : filterNext(f, value.next.runEvent(t)));
 
 const filterKeep = (f, t, { value, next }) =>
-    at(t, makePair(value, filter(f, next)));
+    at(t, eventStep(value, filter(f, next)));
 
 // rest :: Event t a -> Event t a
 // drop the first occurrence
@@ -71,11 +71,11 @@ const mergeE = (e1, e2, t) =>
 const mapwl = (a, b) => a.map(x => ({winner:x, loser:b}));
 
 const mergeNext = (a, b, t) => race(a, b).map(({ winner, loser }) =>
-    makePair(winner.value, merge(new FutureEvent(loser), winner.next)));
+    eventStep(winner.value, merge(new FutureEvent(loser), winner.next)));
 
 // scan :: (a -> b -> a) -> a -> Event t b -> Event t a
 export const scan = (f, a, e) =>
-    new Event(t => at(t, makePair(a, runAccum(f, a, e))));
+    new Event(t => at(t, eventStep(a, runAccum(f, a, e))));
 
 // accum :: a -> Event t (a -> a) -> Event t a
 export const accum = (a, e) => scan((a, f) => f(a), a, e);
@@ -84,14 +84,14 @@ const runAccum = (f, a, e) =>
     new Event(t => e.runEvent(t).map(({ value, next }) =>
         accumNext(f, f(a, value), next)));
 
-const accumNext = (f, b, next) => makePair(b, runAccum(f, b, next));
+const accumNext = (f, b, next) => eventStep(b, runAccum(f, b, next));
 
 // sampleWith :: (a -> b -> c) -> Signal t a -> Event t b -> Event t c
 export const sampleWith = (f, s, e) =>
     new Event(t => e.runEvent(t).apply(({ time, value }) => sampleWithNext(f, time, s.runSignal(time), value)));
 
 const sampleWithNext = (f, t, s, e) =>
-    at(t, makePair(f(s.value, e.value), sampleWith(f, s.next, e.next)));
+    at(t, eventStep(f(s.value, e.value), sampleWith(f, s.next, e.next)));
 
 // sample :: Signal t a -> Event t b -> Event t a
 export const sample = (s, e) => sampleWith(first, s, e);
@@ -106,9 +106,9 @@ const nextEvent = (clock, future) =>
 
 const newOccur = (clock, future) => value => {
     const { occur, event } = nextEvent(clock, newFuture());
-    future.setFuture(clock(), makePair(value, event));
+    future.setFuture(clock(), eventStep(value, event));
     return occur;
 };
 
-// makeEvent :: a -> Event t a -> (a, Event t a)
-const makePair = (value, next) => ({ value, next });
+// eventStep :: a -> Event t a -> (a, Event t a)
+export const eventStep = (value, next) => ({ value, next });

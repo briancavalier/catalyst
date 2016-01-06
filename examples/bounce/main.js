@@ -2,8 +2,16 @@ import 'babel-polyfill'; // needed for generators
 import { build, runEvent, newSource } from '../../src/source';
 import { fromDomEvent, animationFrames } from '../../src/dom';
 import { map, merge, filter, scan, rest, sample } from '../../src/event';
-import { constant, liftA2, integrate, newSignal, step, map as mapSignal } from '../../src/signal';
+import { constant, liftA2, newSignal, step, map as mapSignal } from '../../src/signal';
+import integrate from '../../src/integrate';
 import { newClock } from '../../src/clock';
+
+const maxSpeed = 2.0; // pixels/ms
+
+const friction = 0.001; // air resistance. 0.0 = no friction
+const fk = 1.0 - friction;
+
+const bounce = 0.99; // wall/ball energy transfer. 1.0 = perfect energy transfer
 
 const getBounds = () => {
     const w2 = Math.floor(window.innerWidth / 2);
@@ -13,9 +21,10 @@ const getBounds = () => {
 };
 
 const createDot = (parent) => {
-    const dot = document.createElement('span');
+    const dot = document.createElement('div');
     dot.className = 'dot';
     dot.textContent = '•';
+    dot.style.fontSize = 50.0 + (Math.random()*200.0) + '%';
     dot.style.color = randomColor();
     parent.appendChild(dot);
     return dot;
@@ -23,7 +32,7 @@ const createDot = (parent) => {
 
 // Generate a random color
 const randomColor = () =>
-    'hsl(' + randInt(0, 360) + ',' + randInt(20, 80) + '%,' + randInt(20, 80) + '%)';
+    `hsl(${randInt(0, 360)},${randInt(20, 80)}%,${randInt(20, 80)}%)`;
 
 // Generate a random int between low and high
 const randInt = (low, high) =>
@@ -39,13 +48,11 @@ const createDots = (parent, n) => {
 
 const sign = () => Math.random() >= 0.5 ? 1 : -1;
 
-const randomVelocity = () => ({ x: Math.random(), y: Math.random() });
-const randomDotState = (w, h) => ({
-    x: Math.random()*w*sign(),
-    y: Math.random()*h*sign(),
-    xd: sign(),
-    yd: sign()
+const randomVelocity = () => ({
+    x: Math.random() * maxSpeed,
+    y: Math.random() * maxSpeed
 });
+const randomDotState = () => ({ x: 0, y: 0, xd: sign(), yd: sign() });
 
 const moveDots = (dots, { bounds, velocity }, dt) =>
     dots.map((dot, i) => moveDot(dot, bounds, velocity[i], dt));
@@ -55,12 +62,12 @@ const moveDot = (dot, { x1, x2, y1, y2 }, vel, dt) => {
     let x;
     if(dot.x < x1) {
         x = x1;
-        xd = 1;
+        xd = -dot.xd*bounce;
     } else if(dot.x > x2) {
         x = x2;
-        xd = -1;
+        xd = -dot.xd*bounce;
     } else {
-        xd = dot.xd;
+        xd = dot.xd*fk;
         x = dot.x + (xd * dt * vel.x);
     }
 
@@ -68,12 +75,12 @@ const moveDot = (dot, { x1, x2, y1, y2 }, vel, dt) => {
     let y;
     if(dot.y < y1) {
         y = y1;
-        yd = 1;
+        yd = -dot.yd*bounce;
     } else if(dot.y > y2) {
         y = y2;
-        yd = -1;
+        yd = -dot.yd*bounce;
     } else {
-        yd = dot.yd;
+        yd = dot.yd*fk;
         y = dot.y + (yd * dt * vel.y);
     }
 
@@ -88,8 +95,8 @@ const updateDots = ({ dots, pos }) => {
 
 const dots = build(function*() {
     const initBounds = getBounds();
-    const dots = createDots(document.body, 100);
-    const position = dots.map(() => randomDotState(initBounds.x2, initBounds.y2));
+    const dots = createDots(document.body, 200);
+    const position = dots.map(randomDotState);
 
     const resize = yield fromDomEvent('resize', window);
     const bounds = mapSignal(getBounds, step(initBounds, resize));

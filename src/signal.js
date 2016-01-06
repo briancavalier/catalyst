@@ -29,10 +29,10 @@ class Signal {
 }
 
 // Internal signal helpers
-const mapSignal = (f, { value, next }) => makePair(f(value), next.map(f));
+const mapSignal = (f, { value, next }) => signalStep(f(value), next.map(f));
 
 const liftA2Signal = (f, { value: v1, next: n1 }, { value: v2, next: n2 }) =>
-    makePair(f(v1, v2), liftA2(f, n1, n2));
+    signalStep(f(v1, v2), liftA2(f, n1, n2));
 
 const apply = (f, x) => f(x);
 
@@ -87,24 +87,12 @@ const stepET = (s, ev, t) =>
 
 const stepE = (s, ev) => new Signal(t => stepET(s, ev, t));
 
-const stayAt = (sv, ev) => makePair(sv.value, stepE(sv.next, ev));
+const stayAt = (sv, ev) => signalStep(sv.value, stepE(sv.next, ev));
 
 const switchTo = ({ value, next }, t) => switchToS(value.runSignal(t), next);
 
-const switchToS = ({ value, next }, e) => makePair(value, switcher(next, e));
+const switchToS = ({ value, next }, e) => signalStep(value, switcher(next, e));
 
-// integrate :: (a -> a -> a) -> (dt -> a -> a) -> a -> Signal t a -> Signal t a
-// TODO: This should move somewhere else
-export const integrate = (integral, a, s) => runInteg(integral, a, s, 0);
-
-const runInteg = (integral, a, s, t0) =>
-    new Signal(t => stepInteg(integral, a, s.runSignal(t), t, t0));
-
-const stepInteg = (integral, a, sv, t, t0) => {
-    const b = integral(a, sv.value, t - t0);
-    return makePair(b, runInteg(integral, b, sv.next, t));
-};
-
-// Simple pair helper
-const makePair = (value, next) => ({ value, next });
+// signalStep :: a -> Signal t a -> (a, Signal t a)
+export const signalStep = (value, next) => ({ value, next });
 
