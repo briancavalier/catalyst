@@ -86,17 +86,29 @@ class Apply {
     }
 }
 
-export const race = (a, b) => runRace(a.time, a, b.time, b);
+export const any = (f, a, b) =>
+    a.time === Infinity && b.time === Infinity
+        ? anyFuture(f, a, b, newFuture()) : f(a, b);
 
-const runRace = (ta, a, tb, b) =>
-    ta === Infinity && tb === Infinity ? raceFuture(a, b, newFuture())
-        : ta <= tb ? a : b; // Prefer a when simultaneous
+const anyFuture = (f, a, b, p) => {
+    const any = new Any(f, a, b, p);
+    when(any, a);
+    when(any, b);
+    return p;
+};
 
-function raceFuture(a, b, f) {
-    const s = new SetValue(f);
-    when(s, a);
-    when(s, b);
-    return f;
+class Any {
+    constructor(f, a, b, p) {
+        this.f = f;
+        this.a = a;
+        this.b = b;
+        this.p = p;
+    }
+
+    run(p) {
+        const f = this.f;
+        setFuture(p.time, f(this.a, this.b), this.p);
+    }
 }
 
 class SetValue {

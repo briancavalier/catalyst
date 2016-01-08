@@ -1,4 +1,4 @@
-import { at, race, newFuture, never as neverF } from './future';
+import { at, any, newFuture, never as neverF } from './future';
 
 // Conceptually:
 // type Event t a = Future t (a, Event t a)
@@ -56,22 +56,34 @@ const filterKeep = (f, t, { value, next }) =>
     at(t, eventStep(value, filter(f, next)));
 
 // rest :: Event t a -> Event t a
-// drop the first occurrence
+// Drop first occurrence
 export const rest = e =>
     new Event(t => e.runEvent(t).apply(({ time, value }) =>
         value.next.runEvent(time)));
 
-// merge :: Event t a -> Event t a -> Event t a
-export const merge = (e1, e2) =>
-    new Event(t => mergeE(e1.runEvent(t), e2.runEvent(t), t));
+// merge :: Event t a - Event t a -> Event t a
+// Merge two events. Pick occurrence from e1 when e1 and e2
+// occur simultaneously
+export const merge = (e1, e2) => mergeWith(fst, e1, e2);
 
-const mergeE = (e1, e2, t) =>
-    mergeNext(mapwl(e1, e2), mapwl(e2, e1), t);
+// mergeWith :: (a -> a -> a) -> Event t a -> Event t a -> Event t a
+// Merge two events. Use f to combine simultaneous occurrences
+export const mergeWith = (f, e1, e2) =>
+    new Event(t => mergeE(f, e1.runEvent(t), e2.runEvent(t)));
 
-const mapwl = (a, b) => a.map(x => ({winner:x, loser:b}));
+const mergeE = (f, e1, e2) =>
+    any((a, b) => mergeSelect(f, a, b), e1, e2);
 
-const mergeNext = (a, b, t) => race(a, b).map(({ winner, loser }) =>
-    eventStep(winner.value, merge(new FutureEvent(loser), winner.next)));
+const mergeSelect = (f, a, b) =>
+    a.time < b.time ? mergeNext(f, a, b)
+        : b.time < a.time ? mergeNext(f, b, a)
+        : mergeSimultaneous(f, a.time, a.value, b.value);
+
+const mergeSimultaneous = (f, time, ev1, ev2) =>
+    eventStep(f(ev1.value, ev2.value), mergeWith(f, ev1.next, ev2.next));
+
+const mergeNext = (f, { time, value }, loser) =>
+    eventStep(value.value, mergeWith(f, new FutureEvent(loser), value.next));
 
 // scan :: (a -> b -> a) -> a -> Event t b -> Event t a
 export const scan = (f, a, e) =>
@@ -94,8 +106,7 @@ const sampleWithNext = (f, t, s, e) =>
     at(t, eventStep(f(s.value, e.value), sampleWith(f, s.next, e.next)));
 
 // sample :: Signal t a -> Event t b -> Event t a
-export const sample = (s, e) => sampleWith(first, s, e);
-const first = (a, b) => a;
+export const sample = (s, e) => sampleWith(fst, s, e);
 
 // type Occur a :: a -> Occur a
 // newInput :: Clock t -> { occur :: Occur a, event :: Event t a }
@@ -112,3 +123,6 @@ const newOccur = (clock, future) => value => {
 
 // eventStep :: a -> Event t a -> (a, Event t a)
 export const eventStep = (value, next) => ({ value, next });
+
+// fst :: a -> a -> a
+const fst = (a, _) => a;
