@@ -1,4 +1,4 @@
-import { map as mapE, accum as accumE, rest } from './event';
+import { map as mapE, accum as accumE, trim, rest } from './event';
 
 // Conceptually:
 // type Signal t a = t -> (a, Signal t a)
@@ -80,7 +80,7 @@ export const step = (x, e) => switcher(constant(x), mapE(constant, e));
 
 // switcher :: Signal t a -> Event t (Signal t a) -> Signal t a
 export const switcher = (inits, e) =>
-    new Signal(t => stepET(inits, e.runEvent(t), t));
+    new Signal(t => stepET(inits, trim(e).runEvent(t), t));
 
 const stepET = (s, ev, t) =>
     ev.time <= t ? switchTo(ev.value, t) : stayAt(s.runSignal(t), ev);

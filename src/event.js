@@ -44,6 +44,7 @@ export const map = (f, e) =>
         eventStep(f(value), map(f, next))));
 
 // filter :: (a -> boolean) -> Event t a -> Event t a
+// Keep events for which f is true, skip the rest
 export const filter = (f, e) =>
     new Event(t => filterNext(f, e.runEvent(t), t));
 
@@ -86,10 +87,12 @@ const mergeNext = (f, { time, value }, loser) =>
     eventStep(value.value, mergeWith(f, new FutureEvent(loser), value.next));
 
 // scan :: (a -> b -> a) -> a -> Event t b -> Event t a
+// Accumulate events starting with initial value, using f.
 export const scan = (f, a, e) =>
     new Event(t => at(t, eventStep(a, runAccum(f, a, e))));
 
 // accum :: a -> Event t (a -> a) -> Event t a
+// Accumulate events starting with initial value and a update-function event
 export const accum = (a, e) => scan((a, f) => f(a), a, e);
 
 const runAccum = (f, a, e) =>
