@@ -26,6 +26,10 @@ class Signal {
     liftA2(f, b) {
         return new Signal(t => liftA2Signal(f, this.runSignal(t), b.runSignal(t)));
     }
+
+    liftA3(f, b, c) {
+        return new Signal(t => liftA3Signal(f, this.runSignal(t), b.runSignal(t), c.runSignal(t)));
+    }
 }
 
 // Internal signal helpers
@@ -58,6 +62,10 @@ class ConstSignal {
     liftA2(f, b) {
         return b.map(b => f(this.value, b));
     }
+
+    liftA3(f, b, c) {
+        return b.liftA2((b, c) => f(this.value, b, c), c);
+    }
 }
 
 // newSignal :: (t -> a) -> Signal t a
@@ -71,6 +79,11 @@ export const map = (f, s) => s.map(f);
 
 // liftA2 :: (a -> b -> c) -> Signal t a -> Signal t b -> Signal t c
 export const liftA2 = (f, s1, s2) => s1.liftA2(f, s2);
+
+// liftA3 :: (a -> b -> c -> d) -> Signal t a -> Signal t b -> Signal t c -> Signal t d
+export const liftA3 = (f, s1, s2, s3) => s1.liftA3(f, s2, s3);
+
+const liftA3Signal = (f, { value: v1, next: n1 }, { value: v2, next: n2 }, { value: v3, next: n3 }) => signalStep(f(v1, v2, v3), liftA3(f, n1, n2, n3));
 
 // accum :: a -> Event t (a -> a) -> Signal t a
 export const accum = (a, e) => step(a, rest(accumE(a, e)));

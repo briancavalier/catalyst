@@ -23,9 +23,22 @@
             left: 50%;
             top: 50%;
         }
+        .controls {
+            opacity: 0.5;
+            z-index: 1;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .controls:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
+<section class="controls">
+    <input id="speed" type="range" min="-1.0" max="1.0" step="0.01" value="0.5">
+</section>
 </body>
 <script src="app.js"></script>
 </html>

@@ -34,10 +34,8 @@ const newPushAdapter = f => clock => {
 const chain = (f, clock, r1) =>
     combineChain(r1, f(r1.event).runSource(clock));
 
-const combineChain = (r1, r2) => ({
-        dispose: disposeBoth(r2, r1),
-        event: r2.event
-    });
+const combineChain = (r1, r2) =>
+    ({ dispose: disposeBoth(r2, r1), event: r2.event });
 
 const disposeBoth = (r1, r2) => () => {
     r1.dispose();
