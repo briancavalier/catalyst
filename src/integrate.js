@@ -2,7 +2,8 @@ import { newSignal, signalStep } from './signal';
 
 // Euler integration
 // integrate :: (a -> b -> dt -> a) -> a -> Signal t b -> Signal t a
-export default (integral, a, s) => runInteg(integral, a, s, 0);
+export default (integral, a, s) =>
+    newSignal(t => signalStep(a, runInteg(integral, a, s, t)));
 
 const runInteg = (integral, a0, s, t0) =>
     newSignal(t => stepInteg(integral, a0, s.runSignal(t), t, t0));
