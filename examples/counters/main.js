@@ -2,35 +2,42 @@ import 'babel-polyfill'; // needed for generators
 import { build, runEvent } from '../../src/source';
 import { domEvent } from '../../src/dom';
 import { map, merge, accum } from '../../src/event';
+import { newClock } from '../../src/clock';
 import snabbdom from 'snabbdom';
+import cls from 'snabbdom/modules/class';
 import h from 'snabbdom/h';
+import hh from 'hyperscript-helpers';
+
+const { div, p, span, button } = hh(h);
 
 // -------------------------------------------------------
 // Helpers
 const byId = id => document.getElementById(id);
 const click = id => domEvent('click', byId(id));
 
-const seq = (f, g) => x => g(f(x));
+const compose = (f, g) => x => g(f(x));
+const seq = (...fs) => fs.reduce(compose);
 
 const mapto = (x, e) => map(() => x, e);
 
 // -------------------------------------------------------
 // Rendering
-const patch = snabbdom.init([]);
+const patch = snabbdom.init([cls]);
 
 const render = ({ counters, current }) =>
-    h('div#container', [
-        h('button#add-counter', 'Add counter'),
-        h('button#remove-counter', 'Remove counter'),
-        h('p', renderCounters(current, counters)),
-        h('button#left', '<<'),
-        h('button#inc', '+'),
-        h('button#dec', '-'),
-        h('button#right', '>>')
+    div('#container', [
+        button('#add-counter', 'Add counter'),
+        button('#remove-counter', 'Remove counter'),
+        p(renderCounters(current, counters)),
+        button('#left', '<<'),
+        button('#inc', '+'),
+        button('#dec', '-'),
+        button('#right', '>>')
     ]);
 
 const renderCounters = (current, counters) =>
-    counters.map((val, i) => h('span.counter' + (i === current ? '.current' : ''), `${val}`));
+    counters.map((val, i) =>
+        span('.counter', { class: { current: i === current }}, `${val}`));
 
 // -------------------------------------------------------
 // App state

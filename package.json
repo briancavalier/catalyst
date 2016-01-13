@@ -16,10 +16,11 @@
     "babel-polyfill": "^6.3.14",
     "babel-preset-es2015-rollup": "^1.1.0",
     "babel-preset-stage-0": "^6.3.13",
+    "hyperscript-helpers": "^2.0.3",
     "rollup": "^0.24.0",
     "rollup-plugin-babel": "^2.3.8",
     "rollup-plugin-commonjs": "^2.1.0",
     "rollup-plugin-npm": "^1.2.1",
-    "snabbdom": "^0.2.8"
+    "snabbdom": "^0.3.0"
   }
 }
