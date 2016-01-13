@@ -1,13 +1,13 @@
 import 'babel-polyfill'; // needed for generators
 import { build, runEvent } from '../../src/source';
-import { fromDomEvent, fromInput, animationFrames } from '../../src/dom';
+import { domEvent, inputValue, animationFrames } from '../../src/dom';
 import { map, merge, filter, scan, rest, sample } from '../../src/event';
 import { constant, liftA2, liftA3, newSignal, step, map as mapSignal } from '../../src/signal';
-import integrate from '../../src/integrate';
+import { integralWith } from '../../src/integral';
 import { newClock } from '../../src/clock';
 
 const maxSpeed = 3.0; // pixels/ms
-const bounce = 1.0; // wall/ball energy transfer. 1.0 = perfect energy transfer
+const bounce = 1.0; // coefficient of elasticity. 1.0 = perfect energy transfer
 
 const getBounds = () => {
     const w2 = Math.floor(window.innerWidth / 2);
@@ -49,7 +49,7 @@ const randomVelocity = () => ({
 });
 const randomDotState = () => ({ x: 0, y: 0, xd: sign(), yd: sign() });
 
-const moveDots = (dots, { speed, bounds, velocity }, dt) =>
+const moveDots = ({ speed, bounds }, dots, velocity, dt) =>
     dots.map((dot, i) => moveDot(dot, speed, bounds, velocity[i], dt));
 
 const moveDot = (dot, speed, { x1, x2, y1, y2 }, vel, dt) => {
@@ -83,8 +83,9 @@ const moveDot = (dot, speed, { x1, x2, y1, y2 }, vel, dt) => {
 };
 
 const updateDots = ({ dots, pos }) => {
-    for(let i=0; i<dots.length; ++i) {
-        dots[i].style.transform = `translate3d(${pos[i].x}px,${pos[i].y}px,0)`;
+    for(let i=0, p; i<dots.length; ++i) {
+        p = pos[i];
+        dots[i].style.transform = `translate3d(${p.x}px,${p.y}px,0)`;
     }
 };
 
@@ -93,15 +94,15 @@ const dots = build(function*() {
     const dots = createDots(document.body, 200);
     const position = dots.map(randomDotState);
 
-    const speed = fromInput(document.getElementById('speed'));
+    const speed = inputValue(document.getElementById('speed'));
 
-    const resize = yield fromDomEvent('resize', window);
+    const resize = yield domEvent('resize', window);
     const bounds = mapSignal(getBounds, step(initBounds, resize));
 
     const velocity = constant(dots.map(randomVelocity));
-    const state = liftA3((speed, bounds, velocity) => ({ speed, bounds, velocity }), speed, bounds, velocity);
+    const state = liftA2((speed, bounds) => ({ speed, bounds }), speed, bounds);
 
-    const pos = integrate(moveDots, position, state);
+    const pos = integralWith(moveDots, state, position, velocity);
     const world = liftA2((dots, pos) => ({ dots, pos }), constant(dots), pos);
 
     const rate = yield animationFrames();

@@ -1,6 +1,6 @@
 import 'babel-polyfill'; // needed for generators
 import { build, runEvent } from '../../src/source';
-import { fromDomEvent } from '../../src/dom';
+import { domEvent } from '../../src/dom';
 import { map, merge, accum } from '../../src/event';
 import snabbdom from 'snabbdom';
 import h from 'snabbdom/h';
@@ -8,7 +8,7 @@ import h from 'snabbdom/h';
 // -------------------------------------------------------
 // Helpers
 const byId = id => document.getElementById(id);
-const click = id => fromDomEvent('click', byId(id));
+const click = id => domEvent('click', byId(id));
 
 const seq = (f, g) => x => g(f(x));
 
