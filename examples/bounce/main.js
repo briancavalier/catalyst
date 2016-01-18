@@ -7,7 +7,6 @@ import { integralWith } from '../../src/integral';
 import { newClock } from '../../src/clock';
 
 const maxSpeed = 3.0; // pixels/ms
-const bounce = 1.0; // coefficient of elasticity. 1.0 = perfect energy transfer
 
 const getBounds = () => {
     const w2 = Math.floor(window.innerWidth / 2);
@@ -57,10 +56,10 @@ const moveDot = (dot, speed, { x1, x2, y1, y2 }, vel, dt) => {
     let x;
     if(dot.x < x1) {
         x = x1;
-        xd = -dot.xd*bounce;
+        xd = -dot.xd;
     } else if(dot.x > x2) {
         x = x2;
-        xd = -dot.xd*bounce;
+        xd = -dot.xd;
     } else {
         xd = dot.xd;
         x = dot.x + (xd * dt * vel.x * speed);
@@ -70,10 +69,10 @@ const moveDot = (dot, speed, { x1, x2, y1, y2 }, vel, dt) => {
     let y;
     if(dot.y < y1) {
         y = y1;
-        yd = -dot.yd*bounce;
+        yd = -dot.yd;
     } else if(dot.y > y2) {
         y = y2;
-        yd = -dot.yd*bounce;
+        yd = -dot.yd;
     } else {
         yd = dot.yd;
         y = dot.y + (yd * dt * vel.y * speed);
