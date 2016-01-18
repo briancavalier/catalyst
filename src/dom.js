@@ -43,6 +43,8 @@ export const resize       = (node, capture = false) => domEvent('resize', node, 
 export const scroll       = (node, capture = false) => domEvent('scroll', node, capture);
 export const error        = (node, capture = false) => domEvent('error', node, capture);
 
+export const hashchange   = (node, capture = false) => domEvent('hashchange', node, capture);
+export const popstate     = (node, capture = false) => domEvent('popstate', node, capture);
 export const load         = (node, capture = false) => domEvent('load', node, capture);
 export const unload       = (node, capture = false) => domEvent('unload', node, capture);
 

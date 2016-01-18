@@ -51,7 +51,7 @@ export const filter = (f, e) =>
 const filterNext = (f, ev, t) =>
     ev.apply(({ time, value }) => f(value.value)
         ? filterKeep(f, time, value)
-        : filterNext(f, value.next.runEvent(t)));
+        : filterNext(f, value.next.runEvent(time)));
 
 const filterKeep = (f, t, { value, next }) =>
     at(t, eventStep(value, filter(f, next)));
