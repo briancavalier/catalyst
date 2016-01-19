@@ -1592,7 +1592,7 @@
                   module.exports = {};
                   });
 
-                  var require$$1$2 = ($_iterators && typeof $_iterators === 'object' && 'default' in $_iterators ? $_iterators['default'] : $_iterators);
+                  var require$$1$3 = ($_iterators && typeof $_iterators === 'object' && 'default' in $_iterators ? $_iterators['default'] : $_iterators);
 
                   var $_fails = __commonjs(function (module) {
                   module.exports = function (exec) {
@@ -1835,7 +1835,7 @@
                       redefine = require$$7,
                       hide = require$$6,
                       has = require$$5,
-                      Iterators = require$$1$2,
+                      Iterators = require$$1$3,
                       $iterCreate = require$$3$1,
                       setToStringTag = require$$2$3,
                       getProto = require$$1$5.getProto,
@@ -1979,7 +1979,7 @@
 
                   var addToUnscopables = require$$4$1,
                       step = require$$5$2,
-                      Iterators = require$$1$2,
+                      Iterators = require$$1$3,
                       toIObject = require$$0$6;
 
                   // 22.1.3.4 Array.prototype.entries()
@@ -2015,7 +2015,7 @@
                   var web_dom_iterable = __commonjs(function (module) {
                   var global = require$$0$2,
                       hide = require$$6,
-                      Iterators = require$$1$2,
+                      Iterators = require$$1$3,
                       ITERATOR = require$$0$1('iterator'),
                       NL = global.NodeList,
                       HTC = global.HTMLCollection,
@@ -2156,11 +2156,11 @@
                   };
                   });
 
-                  var require$$1$3 = ($_task && typeof $_task === 'object' && 'default' in $_task ? $_task['default'] : $_task);
+                  var require$$1$2 = ($_task && typeof $_task === 'object' && 'default' in $_task ? $_task['default'] : $_task);
 
                   var web_immediate = __commonjs(function (module) {
                   var $export = require$$2,
-                      $task = require$$1$3;
+                      $task = require$$1$2;
                   $export($export.G + $export.B, {
                     setImmediate: $task.set,
                     clearImmediate: $task.clear
@@ -2272,7 +2272,7 @@
                   var core_getIteratorMethod = __commonjs(function (module) {
                   var classof = require$$3$3,
                       ITERATOR = require$$0$1('iterator'),
-                      Iterators = require$$1$2;
+                      Iterators = require$$1$3;
                   module.exports = require$$1$1.getIteratorMethod = function (it) {
                     if (it != undefined) return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
                   };
@@ -2314,7 +2314,7 @@
 
                   var $_isArrayIter = __commonjs(function (module) {
                   // check on default Array iterator
-                  var Iterators = require$$1$2,
+                  var Iterators = require$$1$3,
                       ITERATOR = require$$0$1('iterator'),
                       ArrayProto = Array.prototype;
 
@@ -2580,12 +2580,12 @@
                   };
                   });
 
-                  var require$$1$17 = ($_stringRepeat && typeof $_stringRepeat === 'object' && 'default' in $_stringRepeat ? $_stringRepeat['default'] : $_stringRepeat);
+                  var require$$1$16 = ($_stringRepeat && typeof $_stringRepeat === 'object' && 'default' in $_stringRepeat ? $_stringRepeat['default'] : $_stringRepeat);
 
                   var $_stringPad = __commonjs(function (module) {
                   // https://github.com/ljharb/proposal-string-pad-left-right
                   var toLength = require$$0$17,
-                      repeat = require$$1$17,
+                      repeat = require$$1$16,
                       defined = require$$0$27;
 
                   module.exports = function (that, maxLength, fillString, left) {
@@ -3663,7 +3663,7 @@
 
                   var $_microtask = __commonjs(function (module) {
                   var global = require$$0$2,
-                      macrotask = require$$1$3.set,
+                      macrotask = require$$1$2.set,
                       Observer = global.MutationObserver || global.WebKitMutationObserver,
                       process = global.process,
                       Promise = global.Promise,
@@ -4445,7 +4445,7 @@
                   };
                   });
 
-                  var require$$1$16 = ($_stringContext && typeof $_stringContext === 'object' && 'default' in $_stringContext ? $_stringContext['default'] : $_stringContext);
+                  var require$$1$17 = ($_stringContext && typeof $_stringContext === 'object' && 'default' in $_stringContext ? $_stringContext['default'] : $_stringContext);
 
                   var es6_string_startsWith = __commonjs(function (module) {
                   // 21.1.3.18 String.prototype.startsWith(searchString [, position ])
@@ -4453,7 +4453,7 @@
 
                   var $export = require$$2,
                       toLength = require$$0$17,
-                      context = require$$1$16,
+                      context = require$$1$17,
                       STARTS_WITH = 'startsWith',
                       $startsWith = ''[STARTS_WITH];
 
@@ -4473,7 +4473,7 @@
 
                   $export($export.P, 'String', {
                     // 21.1.3.13 String.prototype.repeat(count)
-                    repeat: require$$1$17
+                    repeat: require$$1$16
                   });
                   });
 
@@ -4482,7 +4482,7 @@
                   'use strict';
 
                   var $export = require$$2,
-                      context = require$$1$16,
+                      context = require$$1$17,
                       INCLUDES = 'includes';
 
                   $export($export.P + $export.F * require$$0$18(INCLUDES), 'String', {
@@ -4498,7 +4498,7 @@
 
                   var $export = require$$2,
                       toLength = require$$0$17,
-                      context = require$$1$16,
+                      context = require$$1$17,
                       ENDS_WITH = 'endsWith',
                       $endsWith = ''[ENDS_WITH];
 
@@ -6054,6 +6054,11 @@
                       };
                   };
 
+                  var click = function click(node) {
+                      var capture = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+                      return domEvent('click', node, capture);
+                  };
+
                   var _hh = hh(h$1);
 
                   var div = _hh.div;
@@ -6063,13 +6068,6 @@
 
                   // -------------------------------------------------------
                   // Helpers
-
-                  var byId = function byId(id) {
-                      return document.getElementById(id);
-                  };
-                  var click = function click(id) {
-                      return domEvent('click', byId(id));
-                  };
 
                   var compose = function compose(f, g) {
                       return function (x) {
@@ -6083,6 +6081,11 @@
 
                       return fs.reduce(compose);
                   };
+
+                  var byId = function byId(id) {
+                      return document.getElementById(id);
+                  };
+                  var clicks = compose(byId, click);
 
                   var mapto = function mapto(x, e) {
                       return mapE(function () {
@@ -6137,7 +6140,7 @@
                   var add = function add(_ref4) {
                       var counters = _ref4.counters;
                       var current = _ref4.current;
-                      return { counters: counters.concat([0]), current: current };
+                      return { counters: counters.concat([0]), current: counters.length === 0 ? 0 : current };
                   };
 
                   var remove = function remove(_ref5) {
@@ -6174,42 +6177,42 @@
                                   case 0:
                                       _context.t0 = add;
                                       _context.next = 3;
-                                      return click('add-counter');
+                                      return clicks('add-counter');
 
                                   case 3:
                                       _context.t1 = _context.sent;
                                       addCounter = mapto(_context.t0, _context.t1);
                                       _context.t2 = remove;
                                       _context.next = 8;
-                                      return click('remove-counter');
+                                      return clicks('remove-counter');
 
                                   case 8:
                                       _context.t3 = _context.sent;
                                       removeCounter = mapto(_context.t2, _context.t3);
                                       _context.t4 = switchCounter(-1);
                                       _context.next = 13;
-                                      return click('left');
+                                      return clicks('left');
 
                                   case 13:
                                       _context.t5 = _context.sent;
                                       nextCounter = mapto(_context.t4, _context.t5);
                                       _context.t6 = switchCounter(1);
                                       _context.next = 18;
-                                      return click('right');
+                                      return clicks('right');
 
                                   case 18:
                                       _context.t7 = _context.sent;
                                       prevCounter = mapto(_context.t6, _context.t7);
                                       _context.t8 = addCurrent(1);
                                       _context.next = 23;
-                                      return click('inc');
+                                      return clicks('inc');
 
                                   case 23:
                                       _context.t9 = _context.sent;
                                       incCounter = mapto(_context.t8, _context.t9);
                                       _context.t10 = addCurrent(-1);
                                       _context.next = 28;
-                                      return click('dec');
+                                      return clicks('dec');
 
                                   case 28:
                                       _context.t11 = _context.sent;
