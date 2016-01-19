@@ -1,6 +1,6 @@
 import 'babel-polyfill'; // needed for generators
 import { build, runEvent } from '../../src/source';
-import { domEvent, inputValue, animationFrames } from '../../src/dom';
+import { resize, inputValue, animationFrames } from '../../src/dom';
 import { map, merge, filter, scan, rest, sample } from '../../src/event';
 import { constant, liftA2, liftA3, newSignal, step, map as mapSignal } from '../../src/signal';
 import { integralWith } from '../../src/integral';
@@ -95,8 +95,8 @@ const dots = build(function*() {
 
     const speed = inputValue(document.getElementById('speed'));
 
-    const resize = yield domEvent('resize', window);
-    const bounds = mapSignal(getBounds, step(initBounds, resize));
+    const resizeWindow = yield resize(window);
+    const bounds = mapSignal(getBounds, step(initBounds, resizeWindow));
 
     const velocity = constant(dots.map(randomVelocity));
     const state = liftA2((speed, bounds) => ({ speed, bounds }), speed, bounds);
